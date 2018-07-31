@@ -11,6 +11,9 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', 'HospitalController@index');
+Route::get('/hospital/create', 'HospitalController@create');
+Route::post('/hospital/create', 'HospitalController@insert');
+Route::get('/hospital/edit', 'HospitalController@edit');
+Route::post('/hospital/edit', 'HospitalController@update');
+Route::post('/hospital/destroy', 'HospitalController@destroy');
