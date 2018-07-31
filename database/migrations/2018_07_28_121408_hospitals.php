@@ -22,7 +22,6 @@ class Hospitals extends Migration
             $table->softDeletes();
         });
     }
-
     /**
      * Reverse the migrations.
      *
