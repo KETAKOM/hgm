@@ -7,7 +7,9 @@
     住所:
     <input type="input" name="address"></br>
     診療科:
-    <input type="input" name="section"></br>
+    @foreach ($sections as $section)
+        <input type="checkbox" name='section[]' value="{{$section->id}}">{{$section->section_name}}
+    @endforeach
     公開設定:
     <select name="publish_flg">
         <option value="0" selected>公開</option>

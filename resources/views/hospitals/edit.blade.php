@@ -8,11 +8,20 @@
     住所:
     <input type="input" name="address" value="{{$hospital->address}}"></br>
     診療科:
-    <input type="input" name="section" value="{{$hospital->section}}"></br>
+    @foreach ($sections as $section)
+        <input type="checkbox"
+            name="section[]"
+            value="{{$section->id}}"
+            @if (in_array($section->id, $links)) 
+                checked
+            @endif
+        >
+        {{$section->section_name}}
+    @endforeach
     公開設定:
     <select name="publish_flg">
-        <option value="0" @if($hospital->publish_flg === '0') selected @endif>公開</option>
-        <option value="1" @if($hospital->publish_flg === '1') selected @endif>非公開</option>
+        <option value="0" @if($hospital->publish_flg === "0") selected @endif>公開</option>
+        <option value="1" @if($hospital->publish_flg === "1") selected @endif>非公開</option>
     </select>
     </br>
     公開開始日:

@@ -14,7 +14,11 @@
             <th align="left">{{$hospital->id}}</th>
             <th align="left">{{$hospital->name}}</th>
             <th align="left">{{$hospital->address}}</th>
-            <th align="left">{{$hospital->section}}</th>
+            <th align="left">
+                @foreach ($hospital->sections as $section)
+                    {{$section->section_name}}
+                @endforeach
+            </th>
             <th align="left">
                 <a href="hospital/edit?id={{$hospital->id}}">編集する</a>
             </th>

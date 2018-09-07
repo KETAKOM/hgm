@@ -26,7 +26,6 @@ class DropSectionToHospitalsTable extends Migration
     public function down()
     {
         Schema::table('hospitals', function (Blueprint $table) {
-            //
         });
     }
 }

@@ -56,7 +56,7 @@ class SectionLinksTableSeeder extends Seeder
         
         DB::table('section_links')->insert([
             'hospital_id' => 5,
-            'section_id' => 5,
+            'section_id' => 1,
             'created_at' => Carbon::now(),
         ]);
     }
