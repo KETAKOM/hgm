@@ -17,3 +17,5 @@ Route::post('/hospital/create', 'HospitalController@insert');
 Route::get('/hospital/edit', 'HospitalController@edit');
 Route::post('/hospital/edit', 'HospitalController@update');
 Route::post('/hospital/destroy', 'HospitalController@destroy');
+
+Route::get('/search/hospitals/section', 'HospitalController@searchHospitalsBySectionId');

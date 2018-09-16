@@ -158,6 +158,18 @@ class HospitalController extends Controller
         return redirect ('/');
     }
     
+     /**
+     * 診療科から該当する病院を検索する
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function searchHospitalsBySectionId(Request $request)
+    {
+        //診療科ID
+        return $this->getHospitalsBySectionId($request->id);
+    }
+    
     //診療科一覧の取得処理
     private function getSections($id = null) {
         $sections = Section::query()
@@ -166,5 +178,35 @@ class HospitalController extends Controller
             ->get();
             
         return $sections;
+    }
+    
+    //診療科IDからその診療科を保持する病院一覧を取得する
+    private function getHospitalsBySectionId($id) {
+        $currentDateTime = Carbon::now();
+
+        $hospitals = Section::query()
+            ->join('section_links as links', 'sections.id', 'links.section_id')
+            ->join('hospitals as hos', 'links.hospital_id', 'hos.id')
+            ->select('hos.*')
+            ->where('sections.id', $id)
+            ->where('hos.publish_flg', '0')
+            ->where('hos.publish_start', '<=' , $currentDateTime)
+            ->where('hos.publish_last', '>=', $currentDateTime)
+            ->orderBy('hos.id')
+            ->get();
+            
+        foreach ($hospitals as $key => $value) {
+            
+            $sections = SectionLink::query()
+                ->join('sections', 'section_links.section_id', '=', 'sections.id')
+                ->select('sections.id')
+                ->addSelect('sections.section_name')
+                ->where('section_links.hospital_id', $value->id)
+                ->get();
+                
+            $hospitals[$key]->sections = $sections;
+        }
+            
+        return $hospitals;
     }
 }
