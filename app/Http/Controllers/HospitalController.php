@@ -2,14 +2,26 @@
 
 namespace App\Http\Controllers;
 
+// use Illuminate\Http\Request;
+// use App\Models\Hospital;
+// use App\Models\SectionLink;
+// use App\Models\Section;
+use App\Repositories\Hospital\HospitalRepositoryInterface;
 use Illuminate\Http\Request;
-use App\Models\Hospital;
-use App\Models\SectionLink;
-use App\Models\Section;
 use Carbon\Carbon;
 
 class HospitalController extends Controller
 {
+    
+    // protected $hospital;
+    
+    public function __construct
+    (
+        HospitalRepositoryInterface $hospital_repository
+    ) {
+        $this->hospital = $hospital_repository;
+    }
+    
     /**
      * Display a listing of the resource.
      *
@@ -18,25 +30,8 @@ class HospitalController extends Controller
     public function index()
     {
         $currentDateTime = Carbon::now();
-        
-        $hospitals = Hospital::query()
-            ->select('hospitals.*')
-            ->where('publish_flg', '0')
-            ->where('publish_start', '<=' , $currentDateTime)
-            ->where('publish_last', '>=', $currentDateTime)
-            ->get();
-            
-        foreach ($hospitals as $key => $value) {
-            
-            $sections = SectionLink::query()
-                ->join('sections', 'section_links.section_id', '=', 'sections.id')
-                ->select('sections.id')
-                ->addSelect('sections.section_name')
-                ->where('section_links.hospital_id', $value->id)
-                ->get();
-                
-            $hospitals[$key]->sections = $sections;
-        }
+
+        $hospitals = $this->hospital->getHospitals($currentDateTime);
 
         return view('hospitals.index', [
             'hospitals' => $hospitals,
@@ -50,8 +45,10 @@ class HospitalController extends Controller
      */
     public function create()
     {
+        $sections = $this->hospital->getSections();
+
         return view('hospitals.create', [
-            'sections' => $this->getSections(),
+            'sections' => $sections
         ]);
     }
 
@@ -61,23 +58,9 @@ class HospitalController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function insert(Request $request)
+    public function insert()
     {
-        $hospital = new Hospital;
-        $hospital->name = $request->name;
-        $hospital->address = $request->address;
-        $hospital->publish_flg = $request->publish_flg;
-        $hospital->publish_start = $request->publish_start;
-        $hospital->publish_last = $request->publish_last;
-        
-        if ($request->section && $hospital->save()) {
-            foreach ($request->section as $key => $value) {
-                $sections = new SectionLink;
-                $sections->hospital_id = $hospital->id;
-                $sections->section_id = $value;
-                $sections->save();
-            }
-        }
+        $this->hospital->createHospital($request);
         return redirect ('/');
     }
 
@@ -89,24 +72,19 @@ class HospitalController extends Controller
      */
     public function edit(Request $request)
     {
-        $id = $request->id;
+        $hospital = $this->hospital->getHospitalById($request->id);
+        $links = $this->hospital->getSectionLinksByHospitalId($hospital->id);
 
-        $hospital = Hospital::find($id);
-        
         $link_arr = [];
-        
-        $links = SectionLink::query()
-            ->select('section_id')
-            ->where('hospital_id', $id)
-            ->get();
-            
-        foreach ($links as $value) {
-            array_push($link_arr, $value->section_id);
+        foreach ($links as $link) {
+            array_push($link_arr, $link->section_id);
         }
+
+        $sections = $this->hospital->getSections();
 
         return view ('hospitals.edit', [
             'hospital' => $hospital,
-            'sections' => $this->getSections(),
+            'sections' => $sections,
             'links' => $link_arr
         ]);
     }
@@ -119,25 +97,8 @@ class HospitalController extends Controller
      */
     public function update(Request $request)
     {
-        $id = $request->id;
+        $this->hospital->updateHospital($request);
 
-        $hospital = Hospital::find($id);
-        $hospital->name = $request->name;
-        $hospital->publish_flg = $request->publish_flg;
-        $hospital->publish_start = $request->publish_start;
-        $hospital->publish_last = $request->publish_last;
-
-        if ($request->section && $hospital->save()) {
-            //リンク情報を削除
-            SectionLink::where('hospital_id', $request->id)->delete();
-            
-            foreach ($request->section as $key => $value) {
-                $sections = new SectionLink;
-                $sections->hospital_id = $hospital->id;
-                $sections->section_id = $value;
-                $sections->save();
-            }
-        }
         return redirect ('/');
     }
 
@@ -149,11 +110,11 @@ class HospitalController extends Controller
      */
     public function destroy(Request $request)
     {
-        //病院情報を削除
-        Hospital::find($request->id)->delete();
+        //病院情報の削除
+        $this->hospital->deleteHospitalByHospitalId($request->id);
         
         //診療科リンク情報の削除
-        SectionLink::where('hospital_id', $request->id)->delete();
+        $this->hospital->deleteSectionLinksById($request->id);
 
         return redirect ('/');
     }
@@ -164,49 +125,10 @@ class HospitalController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function searchHospitalsBySectionId(Request $request)
+    public function searchHospitalsBySectionIds(Request $request)
     {
-        //診療科ID
-        return $this->getHospitalsBySectionId($request->id);
-    }
-    
-    //診療科一覧の取得処理
-    private function getSections($id = null) {
-        $sections = Section::query()
-            ->select('sections.id')
-            ->addSelect('sections.section_name')
-            ->get();
-            
-        return $sections;
-    }
-    
-    //診療科IDからその診療科を保持する病院一覧を取得する
-    private function getHospitalsBySectionId($id) {
         $currentDateTime = Carbon::now();
-
-        $hospitals = Section::query()
-            ->join('section_links as links', 'sections.id', 'links.section_id')
-            ->join('hospitals as hos', 'links.hospital_id', 'hos.id')
-            ->select('hos.*')
-            ->where('sections.id', $id)
-            ->where('hos.publish_flg', '0')
-            ->where('hos.publish_start', '<=' , $currentDateTime)
-            ->where('hos.publish_last', '>=', $currentDateTime)
-            ->orderBy('hos.id')
-            ->get();
-            
-        foreach ($hospitals as $key => $value) {
-            
-            $sections = SectionLink::query()
-                ->join('sections', 'section_links.section_id', '=', 'sections.id')
-                ->select('sections.id')
-                ->addSelect('sections.section_name')
-                ->where('section_links.hospital_id', $value->id)
-                ->get();
-                
-            $hospitals[$key]->sections = $sections;
-        }
-            
-        return $hospitals;
+        //診療科ID
+        return $this->hospital->getHospitalsBySectionIds($request->id, $currentDateTime);
     }
 }

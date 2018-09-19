@@ -23,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        // Hospotal
+        $this->app->bind(
+            \App\Repositories\Hospital\HospitalRepositoryInterface::class,
+            \App\Repositories\Hospital\HospitalRepository::class
+        );
     }
 }

@@ -18,4 +18,4 @@ Route::get('/hospital/edit', 'HospitalController@edit');
 Route::post('/hospital/edit', 'HospitalController@update');
 Route::post('/hospital/destroy', 'HospitalController@destroy');
 
-Route::get('/search/hospitals/section', 'HospitalController@searchHospitalsBySectionId');
+Route::get('/search/hospitals/section', 'HospitalController@searchHospitalsBySectionIds');
