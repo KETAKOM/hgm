@@ -1,6 +1,6 @@
 <?php
-
 namespace App\Repositories\Hospital;
+
 use App\Models\Hospital;
 use App\Models\Section;
 use App\Models\SectionLink;

@@ -2,18 +2,12 @@
 
 namespace App\Http\Controllers;
 
-// use Illuminate\Http\Request;
-// use App\Models\Hospital;
-// use App\Models\SectionLink;
-// use App\Models\Section;
 use App\Repositories\Hospital\HospitalRepositoryInterface;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class HospitalController extends Controller
 {
-    
-    // protected $hospital;
     
     public function __construct
     (
