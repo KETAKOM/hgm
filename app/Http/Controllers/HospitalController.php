@@ -52,7 +52,7 @@ class HospitalController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function insert()
+    public function insert(Request $request)
     {
         $this->hospital->createHospital($request);
         return redirect ('/');
